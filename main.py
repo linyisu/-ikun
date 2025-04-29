@@ -1,3 +1,3 @@
 
 if __name__ == '__main__':
-    print("Hello, ikun!")
+    print("I'm ikun!")
