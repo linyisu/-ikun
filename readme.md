@@ -1,7 +1,7 @@
 ## 项目结构
 
 ```shell
-ikun_insight/
+-ikun/
 ├── README.md
 ├── requirements.txt
 ├── spider/              # 👀 数据爬虫（bilibili、微博、知乎）
