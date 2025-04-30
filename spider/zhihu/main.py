@@ -59,13 +59,30 @@ def get_answers_from_question(url):
     driver = DriverSingleton()
     driver.get(url)
     time.sleep(3)
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+    element = driver.find_element(By.XPATH, "//a[contains(@class, 'ViewAll-QuestionMainAction') and contains(text(), '查看全部')]")
+    driver.execute_script("arguments[0].click();", element)
+    
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    while True:
+    # 滚到底部
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)  # 等待页面加载（可调整）
+
+        # 获取新高度
+        new_height = driver.execute_script("return document.body.scrollHeight")
+
+        # 如果高度没变，就说明到底了
+        if new_height == last_height:
+            break
+
+        last_height = new_height
+
+    time.sleep(2)  # 等待加载完成
+
     comments = driver.find_elements(By.XPATH, "//p[@data-pid]")  # 根据data-pid定位评论内容
-    for comment in comments:
-        print(comment.text)
-    # button = driver.find_element(By.XPATH, "//button//svg[contains(@class, 'Zi--Comment')]")
-    # button.click()
-    time.sleep(10)
+    # time.sleep(50)
+    return comments
 
 # 主程序：整合流程
 def crawl_zhihu_about(keyword):
@@ -93,6 +110,6 @@ def crawl_zhihu_about(keyword):
     print("✅ 完成，共保存回答数：", len(all_answers))
 
 # 运行爬虫
-# crawl_zhihu_about("蔡徐坤")
+crawl_zhihu_about("蔡徐坤")
 
-get_answers_from_question("https://www.zhihu.com/question/1894320470754562551/answer/1896939277058824027")
+# get_answers_from_question("https://www.zhihu.com/question/1894320470754562551/answer/1896939277058824027")
