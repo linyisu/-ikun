@@ -1,7 +1,5 @@
 bs4
 requests
 pandas
-selenium
 dotenv
 pandas
-drissionpage
