@@ -28,8 +28,15 @@ result = ' '.join(words)
 wc = WordCloud(
     font_path='msyh.ttc',
     background_color='white',
-    width=800,
-    height=600
+    width=900,
+    height=500,
+    max_words=200,
+    colormap='rainbow',  # 彩虹色
+    prefer_horizontal=0.9,
+    scale=2,
+    contour_width=2,
+    contour_color='steelblue',
+    random_state=42
 )
 
 # 生成词云

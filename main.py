@@ -67,9 +67,12 @@ def start(bv, oid, pageID, count, csv_writer, is_second):
         w_rid = md5(code)
         url = f"https://api.bilibili.com/x/v2/reply/wbi/main?oid={oid}&type={type}&mode={mode}&pagination_str={urllib.parse.quote(pagination_str, safe=':')}&plat=1&seek_rpid=&web_location=1315875&w_rid={w_rid}&wts={wts}"
     
-
-    comment = requests.get(url=url, headers=get_Header()).content.decode('utf-8')
-    comment = json.loads(comment)
+    response = requests.get(url=url, headers=get_Header())
+    if response.status_code != 200:
+        print(f"请求失败，状态码: {response.status_code}")
+        print(f"返回内容: {response.text}")
+        raise Exception("请求B站评论接口失败，请检查网络或Cookie是否有效。")
+    comment = json.loads(response.content.decode('utf-8'))
 
     for reply in comment['data']['replies']:
         # 评论数量+1

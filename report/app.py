@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import jieba
+from streamlit_echarts import st_echarts
+from collections import Counter
 
 st.markdown(
     """
@@ -108,7 +110,7 @@ def main():
     if is_click and bv:
         with st.spinner("正在爬取评论中..."):
             try:
-                data = fetch_comments(bv)  # 只爬18页防止太慢
+                data = fetch_comments(bv, max_pages=15)  # 只爬15页防止太慢
                 # cy
                 if not data:
                     st.warning("没有爬取到任何评论。")
@@ -130,9 +132,8 @@ def main():
                 return
     # 只在有评论数据后才显示分析词云按钮
     if 'df' in st.session_state and st.session_state['df'] is not None:
-        # 用st.container()分组，保证词云和评论区内容并存
         with st.container():
-            if st.button("分析词云"):
+            if st.button("分析词云（静态图片）"):
                 st.info("正在生成词云，请稍候...")
                 df = st.session_state.get('df', None)
                 file_path = st.session_state.get('file_path', None)
@@ -142,7 +143,6 @@ def main():
                     st.error("没有可用的评论内容，无法生成词云。")
                     return
                 text = ' '.join(df['评论内容'].astype(str))
-                # 加载停用词
                 stopwords = set()
                 try:
                     with open('stopwords.txt', 'r', encoding='utf-8') as f:
@@ -150,7 +150,6 @@ def main():
                             stopwords.add(line.strip())
                 except FileNotFoundError:
                     stopwords = set(['的', '了', '和', '是', '我', '也', '就', '都', '而', '及', '与', '着', '或', '一个', '没有', '我们', '你', '你们', '他', '她', '它', '啊', '吧', '吗', '呢'])
-                # 分词并去除停用词和单字
                 words = [w for w in jieba.cut(text) if w not in stopwords and len(w) > 1]
                 if not words:
                     st.warning("分词后无有效词语，无法生成词云。")
@@ -164,6 +163,72 @@ def main():
                     st.error(f"词云生成失败：{e}")
                     import traceback
                     st.text(traceback.format_exc())
+            if st.button("分析词云（可交互）"):
+                df = st.session_state.get('df', None)
+                file_path = st.session_state.get('file_path', None)
+                if df is None and file_path:
+                    df = pd.read_csv(file_path)
+                if df is None or '评论内容' not in df.columns:
+                    st.error("没有可用的评论内容，无法生成词云。")
+                    return
+                text = ' '.join(df['评论内容'].astype(str))
+                stopwords = set()
+                try:
+                    with open('stopwords.txt', 'r', encoding='utf-8') as f:
+                        for line in f:
+                            stopwords.add(line.strip())
+                except FileNotFoundError:
+                    stopwords = set(['的', '了', '和', '是', '我', '也', '就', '都', '而', '及', '与', '着', '或', '一个', '没有', '我们', '你', '你们', '他', '她', '它', '啊', '吧', '吗', '呢'])
+                words = [w for w in jieba.cut(text) if w not in stopwords and len(w) > 1]
+                if not words:
+                    st.warning("分词后无有效词语，无法生成词云。")
+                    return
+                word_freq = Counter(words)
+                data = [{"name": k, "value": v} for k, v in word_freq.most_common(200)]
+                option = {
+                    "backgroundColor": "#f5f7fa",  # 浅色背景
+                    "tooltip": {"show": True},
+                    "series": [{
+                        "type": 'wordCloud',
+                        "shape": 'star',
+                        "gridSize": 8,
+                        "sizeRange": [20, 90],
+                        "rotationRange": [-45, 90],
+                        "rotationStep": 15,
+                        "left": "center",
+                        "top": "center",
+                        "width": "100%",
+                        "height": "100%",
+                        "textStyle": {
+                            "fontFamily": "微软雅黑",
+                            "fontWeight": "bold",
+                            "shadowColor": "#b7e3fa",
+                            "shadowBlur": 8,
+                            "color": {
+                                "type": "radial",
+                                "x": 0.5,
+                                "y": 0.5,
+                                "r": 0.8,
+                                "colorStops": [
+                                    {"offset": 0, "color": "#91caff"},
+                                    {"offset": 0.5, "color": "#f9e79f"},
+                                    {"offset": 1, "color": "#ffb3b3"}
+                                ]
+                            }
+                        },
+                        "emphasis": {
+                            "focus": "self",
+                            "textStyle": {
+                                "shadowBlur": 16,
+                                "shadowColor": "#fff",
+                                "color": "#faad14"
+                            }
+                        },
+                        "drawOutOfBound": False,
+                        "data": data
+                    }]
+                }
+                st_echarts(option, height="600px")
 
 if __name__ == "__main__":
     main()
