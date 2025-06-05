@@ -1,47 +1,46 @@
-import pandas as pd
+"""
+词云与分词分析模块
+"""
 import jieba
 from wordcloud import WordCloud
+from collections import Counter
+from config.settings import STOPWORDS_PATH, DEFAULT_STOPWORDS, WORDCLOUD_CONFIG
 
-# 读取停用词表
-def load_stopwords(filepath='stopwords.txt'):
+def load_stopwords(filepath=None):
     stopwords = set()
+    if filepath is None:
+        filepath = STOPWORDS_PATH
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             for line in f:
                 stopwords.add(line.strip())
     except FileNotFoundError:
-        # 默认常见停用词
-        stopwords = set(['的', '了', '和', '是', '我', '也', '就', '都', '而', '及', '与', '着', '或', '一个', '没有', '我们', '你', '你们', '他', '她', '它', '啊', '吧', '吗', '呢'])
+        stopwords = DEFAULT_STOPWORDS.copy()
     return stopwords
 
-stopwords = load_stopwords()
+def generate_wordcloud(text, stopwords=None):
+    if stopwords is None:
+        stopwords = load_stopwords()
+    words = [w for w in jieba.cut(text) if w not in stopwords and len(w) > 1]
+    if not words:
+        return None
+    result = ' '.join(words)
+    wc = WordCloud(
+        font_path=WORDCLOUD_CONFIG['font_path'],
+        background_color=WORDCLOUD_CONFIG['background_color'],
+        width=WORDCLOUD_CONFIG['width'],
+        height=WORDCLOUD_CONFIG['height'],
+        max_words=WORDCLOUD_CONFIG['max_words'],
+        colormap=WORDCLOUD_CONFIG['colormap']
+    )
+    wc.generate(result)
+    return wc.to_array()
 
-# 读取 CSV 文件
-df = pd.read_csv('data/comments.csv')
-text = ' '.join(df['评论内容'].astype(str))
-
-# 中文分词并去除停用词和单字
-words = [w for w in jieba.cut(text) if w not in stopwords and len(w) > 1]
-result = ' '.join(words)
-
-# 创建词云对象
-wc = WordCloud(
-    font_path='msyh.ttc',
-    background_color='white',
-    width=900,
-    height=500,
-    max_words=200,
-    colormap='rainbow',  # 彩虹色
-    prefer_horizontal=0.9,
-    scale=2,
-    contour_width=2,
-    contour_color='steelblue',
-    random_state=42
-)
-
-# 生成词云
-wc.generate(result)
-
-# 保存词云图片
-wc.to_file('data/wordcloud.png')
-print('词云已保存到 data/wordcloud.png')
+def generate_wordcloud_data(text, stopwords=None, top_n=200):
+    if stopwords is None:
+        stopwords = load_stopwords()
+    words = [w for w in jieba.cut(text) if w not in stopwords and len(w) > 1]
+    if not words:
+        return []
+    word_freq = Counter(words)
+    return [{"name": k, "value": v} for k, v in word_freq.most_common(top_n)]
