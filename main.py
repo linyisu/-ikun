@@ -23,8 +23,16 @@ def get_Header():
 # 通过bv号，获取视频的avid
 def get_avid_from_bv(bv):
     url = f'https://api.bilibili.com/x/web-interface/view?bvid={bv}'
-    response = requests.get(url)
-    data = response.json()
+    response = requests.get(url, headers=get_Header())
+    try:
+        data = response.json()
+    except Exception as e:
+        print('接口返回内容不是合法JSON，可能是Cookie失效或被风控。返回内容如下：')
+        print(response.text)
+        raise e
+    if data.get('code', 0) != 0:
+        print(f"接口返回错误: {data.get('message', '未知错误')}")
+        raise Exception('获取avid失败')
     return data['data']['aid']
 
 # MD5加密
