@@ -17,14 +17,12 @@ def get_avid_from_bv(bv):
         raise Exception(f"Failed to fetch data: {response.status_code}")
 
 
-def get_comments(avid):
+def get_comments(avid, page=1):
     params = {
         'type': 1,
         'oid': avid,
         'sort': 1,
-        'pn': 2 ,
-        'ps': 20,  # 每页20条评论
-
+        'pn': page,
     }
     url = f'https://api.bilibili.com/x/v2/reply'
     response = session.get(url, params=params)
@@ -39,14 +37,29 @@ def get_comments(avid):
         raise Exception(f"Failed to fetch comments: {response.status_code}")
 
 
+def get_user_info():
+    url = f'https://api.bilibili.com/x/space/myinfo'
+    response = session.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        if 'data' in data:
+            return data['data']
+        else:
+            raise ValueError("Invalid response structure")
+    else:
+        raise Exception(f"Failed to fetch user info: {response.status_code}")
+
+
 if __name__ == "__main__":
     load_dotenv()
     cookies = os.getenv("BILI_COOKIE")
+    sessdate = os.getenv("SESSDATA")
     
     bv = 'BV1qC4y1E7oU'  # 示例 BV 号
 
     session = requests.Session()
-    session.cookies.set('SESSDATA', cookies)
+    session.cookies.set('SESSDATA', sessdate)
     session.headers.update({
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
     })
@@ -58,5 +71,6 @@ if __name__ == "__main__":
         print(f"评论数量: {len(comments)}")
         for comment in comments:
             print(f"评论内容: {comment['content']['message']}")
+        # print(get_user_info())
     except Exception as e:
         print(f"Error: {e}")
