@@ -17,6 +17,9 @@ def getInfo(BV, link):
     title = re.findall(r'<title data-vue-meta="true">(.*?)</title>', resp.text)[0]
     return oid, title
 
+def clean_title(title):
+    # 替换 Windows 文件名不允许的字符
+    return re.sub(r'[\\/:*?"<>|]', '_', title)
 
 def start(bv, oid, pageID, count, csv_writer, cnt, total_count):
     mode, plat, type = 2, 1, 1
@@ -63,12 +66,13 @@ if __name__ == '__main__':
     BV = input()
     link = f'https://www.bilibili.com/video/{BV}'
     oid, title = getInfo(BV, link)
-    print(title[:-14])
+    safe_title = clean_title(title[:-14])
+    print(safe_title)
 
     needCnt = 1000
     total_count = 0
 
-    with open(f'{title[:-14]}_评论.csv', mode='w', newline='', encoding='utf-8-sig') as file:
+    with open(f'{safe_title}_评论.csv', mode='w', newline='', encoding='utf-8-sig') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerow(['序号', '用户ID', '用户名', '用户等级', '性别', '评论内容', '评论时间', '回复数', '点赞数', '个性签名'])
         start(BV, oid, '', 0, csv_writer, needCnt, total_count)
