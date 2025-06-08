@@ -39,7 +39,6 @@ def fetch_comments(bv, max_pages=1000, delay=0.5):
             comments.append({
                 "用户名": r["member"]["uname"],
                 "评论内容": r["content"]["message"],
-                "点赞数": r["like"],
                 "评论时间": datetime.fromtimestamp(r["ctime"]).strftime('%Y-%m-%d %H:%M:%S'),
             })
         pagination_str = res['data']['cursor']['pagination_reply'].get('next_offset', 0)

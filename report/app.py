@@ -210,8 +210,6 @@ def main():
                     st.error(f"❌ 出错了：{e}")
         if df is not None:
             show_analysis(df, key_prefix='online', animated=True)
-        else:
-            st.info("请先爬取评论数据后再分析。")
 
     elif page == "📁 本地数据分析":
         st.header("📁 本地数据分析")
