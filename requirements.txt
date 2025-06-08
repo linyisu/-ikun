@@ -6,3 +6,5 @@ pandas
 streamlit
 wordcloud
 jieba
+snownlp
+plotly

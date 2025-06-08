@@ -5,6 +5,17 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+STREAMLIT_PAGE_CONFIG = {
+    "page_title": "B站评论分析平台",
+    "page_icon": "📊",
+    "layout": "wide",
+    "initial_sidebar_state": "expanded"
+}
+
+# 你可能还有
+from pathlib import Path
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
 # 加载 .env 文件中的环境变量
 # 项目根目录 (假设 settings.py 在 config 文件夹中)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
