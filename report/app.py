@@ -89,8 +89,7 @@ def render_trend_chart(df, key_prefix, animated=False):
                 tooltip=[x_col, '评论数']
             ).properties(width=700, height=350)
             placeholder.altair_chart(chart, use_container_width=True)
-            time.sleep(0.05)
-        st.altair_chart(chart, use_container_width=True)
+            time.sleep(0.001)
     else:
         chart = alt.Chart(count_df).mark_line(point=True, interpolate='monotone').encode(
             x=alt.X(x_col, title="时间"),
@@ -186,9 +185,41 @@ def show_analysis(df, key_prefix, animated=False):
 def main():
     st.title("🎥 B站评论爬取分析器")
     st.sidebar.title("🧭 功能导航")
-    page = st.sidebar.selectbox("选择功能", ["📡 在线爬取与分析", "📁 本地数据分析"])
+    page = st.sidebar.selectbox("选择功能", ["🏠 首页", "📡 在线爬取与分析", "📁 本地数据分析"]) # MODIFIED
 
-    if page == "📡 在线爬取与分析":
+    if page == "🏠 首页":
+        st.header("🏠 欢迎使用B站评论爬取分析器！")
+        st.markdown(
+            """
+
+            本应用旨在帮助用户轻松爬取B站指定视频的评论数据，并进行初步的分析。
+
+            **主要功能包括：**
+
+            - **在线爬取与分析：**
+                - 输入B站视频的BV号，即可在线爬取评论数据。
+                - 对爬取到的评论进行词云分析（静态图片和可交互版本）。
+                - 查看评论数量随时间变化的趋势图（按天或按自然周聚合）。
+                - 对评论内容进行简单的情感分析，并以饼图展示情感分布。
+                - 下载爬取到的评论数据为CSV文件。
+            - **本地数据分析：**
+                - 上传或选择本地存储的评论CSV文件。
+                - 对本地数据进行与在线分析类似的词云、趋势图和情感分析。
+
+            **技术栈：**
+
+            - 前端：Streamlit
+            - 数据处理：Pandas
+            - 词云生成：wordcloud, jieba
+            - 可交互词云：streamlit-echarts
+            - 趋势图：Altair
+            - 情感分析：基于简单规则或自定义模型（具体实现见 `analysis.sentiment`）
+
+            希望这款工具能为您带来便利！
+            """
+        )
+
+    elif page == "📡 在线爬取与分析":
         st.header("📡 在线爬取与分析")
         bv = st.text_input("请输入BV号:", "")
         is_click = st.button("开始爬取")
@@ -196,7 +227,7 @@ def main():
         if is_click and bv:
             with st.spinner("正在爬取评论中..."):
                 try:
-                    data = fetch_comments(bv, max_pages=20)
+                    data = fetch_comments(bv, max_pages=15)
                     if not data:
                         st.warning("没有爬取到任何评论。")
                     else:
@@ -220,7 +251,7 @@ def main():
             st.session_state['df_local'] = df
         df = st.session_state.get('df_local', None)
         if df is not None:
-            show_analysis(df, key_prefix='local', animated=False)
+            show_analysis(df, key_prefix='local', animated=True)
         elif csv_files:
             st.info("请选择一个CSV文件后再分析。")
         else:
