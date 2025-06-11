@@ -1,8 +1,11 @@
 bs4
 requests
 pandas
-dotenv
-pandas
+python-dotenv
 streamlit
 wordcloud
 jieba
+streamlit-echarts
+altair
+snownlp
+plotly
